@@ -1,0 +1,37 @@
+# Python
+__pycache__/
+*.py[cod]
+*.so
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Virtual Environment
+
+# Log files
+*.log
+
+# Data & Results
+data25.7_aligned
+*.npy
+*.npz
+*.pt
+*.zip
+*.tar.xz
+*.txt
+*.png
+*.wandb
+wandb/
+checkpoints/
+ae_checkpoints/
+
+# Temporary files
+*.tmp
+*.swp
+*.bak
+
+# IDE / Editor
+.vscode/
+.idea/
+data25.7_aligned.tar.xz
+data25.7_aligned
