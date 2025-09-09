@@ -141,7 +141,7 @@ class TactilePolicyFeatureMLP(nn.Module):
         # 统计参数
         total_params = sum(p.numel() for p in self.parameters())
         trainable_params = sum(p.numel() for p in self.parameters() if p.requires_grad)
-        print(f"� 模型参数: 总计 {total_params:,}, 可训练 {trainable_params:,}")
+        print(f"模型参数: 总计 {total_params:,}, 可训练 {trainable_params:,}")
         
     def _initialize_weights(self):
         """初始化MLP权重"""
