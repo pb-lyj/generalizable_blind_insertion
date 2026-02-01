@@ -214,39 +214,34 @@ def compute_cnn_autoencoder_losses(inputs, outputs, config, dataset=None):
             orig_force_real, orig_moment_real = compute_resultant_force_and_moment(inputs_denorm_tensor)
             recon_force_real, recon_moment_real = compute_resultant_force_and_moment(reconstructed_denorm_tensor)
             
-            # 计算各轴向的MSE损失
-            force_diff = recon_force_real - orig_force_real  # (B, 3)
-            moment_diff = recon_moment_real - orig_moment_real  # (B, 3)
+            force_diff = recon_force_real - orig_force_real
+            moment_diff = recon_moment_real - orig_moment_real
             
-            # 计算三轴分量的MSE
-            force_mse_per_axis = torch.mean(force_diff ** 2, dim=0)  # (3,) [fx, fy, fz]
-            moment_mse_per_axis = torch.mean(moment_diff ** 2, dim=0)  # (3,) [mx, my, mz]
+            force_mse_per_axis = torch.mean(force_diff ** 2, dim=0)
+            moment_mse_per_axis = torch.mean(moment_diff ** 2, dim=0)
             
-            # 计算总体MSE
-            force_mse_total = torch.mean(force_diff ** 2)  # 标量
-            moment_mse_total = torch.mean(moment_diff ** 2)  # 标量
+            force_mse_total = torch.mean(force_diff ** 2)
+            moment_mse_total = torch.mean(moment_diff ** 2)
             
-            # 转换为列表格式 [x, y, z, total]
             real_force_loss = [
-                force_mse_per_axis[0].item(),  # fx
-                force_mse_per_axis[1].item(),  # fy
-                force_mse_per_axis[2].item(),  # fz
-                force_mse_total.item()         # total
+                force_mse_per_axis[0].item(),
+                force_mse_per_axis[1].item(),
+                force_mse_per_axis[2].item(),
+                force_mse_total.item()
             ]
             
             real_moment_loss = [
-                moment_mse_per_axis[0].item(),  # mx
-                moment_mse_per_axis[1].item(),  # my
-                moment_mse_per_axis[2].item(),  # mz
-                moment_mse_total.item()         # total
+                moment_mse_per_axis[0].item(),
+                moment_mse_per_axis[1].item(),
+                moment_mse_per_axis[2].item(),
+                moment_mse_total.item()
             ]
             
         except Exception as e:
-            print(f"⚠️  计算真实物理损失失败: {e}")
+            print(f"Warning: Failed to compute physical losses: {e}")
             real_force_loss = [0.0, 0.0, 0.0, 0.0]
             real_moment_loss = [0.0, 0.0, 0.0, 0.0]
         
-    # 4. 总损失
     if config.get('use_resultant_loss', False):
         total_loss = (recon_loss + 
                 config.get('l2_lambda', 0.001) * l2_loss +

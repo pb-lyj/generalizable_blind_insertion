@@ -156,15 +156,12 @@ def train_resnet18_autoencoder(config):
             for k, v in metrics.items():
                 total_metrics[k] = total_metrics.get(k, 0.0) + v * bsz
 
-        # Average metrics
         avg_metrics = {k: v / total_samples for k, v in total_metrics.items()}
         avg_loss = avg_metrics['total_loss']
 
-        # LR scheduling
         scheduler.step(avg_loss)
         cur_lr = optimizer.param_groups[0]['lr']
 
-        # wandb log (same keys as your original)
         log_dict = {'train/learning_rate': cur_lr}
         for k, v in avg_metrics.items():
             log_dict[f'train/{k}'] = v
@@ -176,7 +173,6 @@ def train_resnet18_autoencoder(config):
             print(f"  {k}: {v:.6f}")
         print("-" * 50)
 
-        # Validation
         if epoch % config['training']['eval_every'] == 0:
             val_metrics = evaluate_model(model, test_loader, config['loss'])
             run.log({f'val/{k}': v for k, v in val_metrics.items()}, step=epoch)
@@ -186,13 +182,11 @@ def train_resnet18_autoencoder(config):
                 print(f"  val_{k}: {v:.6f}")
             print("-" * 50)
 
-        # Visualization every 10 epochs (optional)
         if epoch % 10 == 0:
             epoch_viz_dir = os.path.join(viz_dir, f"epoch_{epoch}")
             os.makedirs(epoch_viz_dir, exist_ok=True)
             visualize_reconstruction(model, train_loader, epoch_viz_dir)
 
-        # Save best
         if avg_loss < best_loss:
             best_loss = avg_loss
             best_path = os.path.join(out_dir, "best_model.pt")
@@ -206,7 +200,6 @@ def train_resnet18_autoencoder(config):
             wandb.save(best_path)
             print(f"💾 Saved best model (Loss: {best_loss:.6f})")
 
-    # Final save
     final_path = os.path.join(out_dir, "final_model.pt")
     torch.save({
         'model_state_dict': model.state_dict(),
@@ -226,7 +219,6 @@ def main(config):
 
 
 if __name__ == '__main__':
-    # Default config: keep same structure/keys as your original for wandb parity
     config = {
         'data': {
             'data_root': 'data25.7_aligned',
@@ -236,7 +228,6 @@ if __name__ == '__main__':
                 'tri_lar', 'tri_med', 'tri_sma'
             ],
             'start_frame': 0,
-            # If you want ImageNet normalization inside the model, set this to None to avoid double-normalization
             'normalize_method': 'zscore'  
         },
         'wandb': {
@@ -244,13 +235,13 @@ if __name__ == '__main__':
             'name': 'resnet18_ae_run'
         },
         'model': {
-            'in_channels': 3,              # kept for parity; not used directly
+            'in_channels': 3,
             'latent_dim': 128,
             'pretrained': True,
-            'use_preprocess': True,        # enable ImageNet mean/std normalization in-model
-            'rescale_to_01': False,         # rescale each sample to [0,1] before normalization
+            'use_preprocess': True,
+            'rescale_to_01': False,
             'freeze_bn': False,
-            'keep_stem': True              # set False to use 3x3 s=1 stem (better for 20x20)
+            'keep_stem': True
         },
         'loss': {
             'l2_lambda': 0.001,
