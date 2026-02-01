@@ -7,11 +7,11 @@ import matplotlib.pyplot as plt
 
 def save_comparison_images(original_images, reconstructed_images, save_path, prefix="comparison"):
     """
-    保存原始图像和重建图像的对比图
-    original_images: shape (batch_size, 3, H, W)，原始图像
-    reconstructed_images: shape (batch_size, 3, H, W)，重建图像
+    Save comparison images of original and reconstructed tactile force data.
+    Args:
+        original_images: shape (batch_size, 3, H, W)
+        reconstructed_images: shape (batch_size, 3, H, W)
     """
-    # 处理输入格式：如果是tensor则转换为numpy
     if isinstance(original_images, torch.Tensor):
         original_images = original_images.detach().cpu().numpy()
     if isinstance(reconstructed_images, torch.Tensor):
@@ -20,27 +20,23 @@ def save_comparison_images(original_images, reconstructed_images, save_path, pre
     batch_size = original_images.shape[0]
     
     for i in range(batch_size):
-        # 创建左右对比布局
         fig, axes = plt.subplots(2, 6, figsize=(24, 8))
         
-        # 提取原始图像的每个通道
-        orig_x = original_images[i, 0]  # X方向力
-        orig_y = original_images[i, 1]  # Y方向力
-        orig_z = original_images[i, 2]  # Z方向力
+        orig_x = original_images[i, 0]
+        orig_y = original_images[i, 1]
+        orig_z = original_images[i, 2]
         
-        # 提取重建图像的每个通道
-        recon_x = reconstructed_images[i, 0]  # X方向力
-        recon_y = reconstructed_images[i, 1]  # Y方向力
-        recon_z = reconstructed_images[i, 2]  # Z方向力
+        recon_x = reconstructed_images[i, 0]
+        recon_y = reconstructed_images[i, 1]
+        recon_z = reconstructed_images[i, 2]
         
-        # 计算统一的颜色范围（使用原始图像和重建图像的最大绝对值）
+        # Compute unified color range
         max_abs_value = max(
             np.max(np.abs(orig_x)), np.max(np.abs(orig_y)), np.max(np.abs(orig_z)),
             np.max(np.abs(recon_x)), np.max(np.abs(recon_y)), np.max(np.abs(recon_z))
         )
         vmin, vmax = -max_abs_value, max_abs_value
         
-        # 第一行：原始图像的三个通道
         axes[0, 0].imshow(orig_x, cmap='RdBu_r', interpolation='nearest', vmin=vmin, vmax=vmax)
         axes[0, 0].set_title('Original X Force', fontsize=12, fontweight='bold')
         axes[0, 0].set_xlabel('Width')
@@ -56,7 +52,6 @@ def save_comparison_images(original_images, reconstructed_images, save_path, pre
         axes[0, 2].set_xlabel('Width')
         axes[0, 2].set_ylabel('Height')
         
-        # 第二行：重建图像的三个通道
         axes[1, 0].imshow(recon_x, cmap='RdBu_r', interpolation='nearest', vmin=vmin, vmax=vmax)
         axes[1, 0].set_title('Reconstructed X Force', fontsize=12, fontweight='bold')
         axes[1, 0].set_xlabel('Width')
@@ -72,12 +67,9 @@ def save_comparison_images(original_images, reconstructed_images, save_path, pre
         axes[1, 2].set_xlabel('Width')
         axes[1, 2].set_ylabel('Height')
         
-        # 差异图：第一行右侧三个图
         diff_x = orig_x - recon_x
         diff_y = orig_y - recon_y
         diff_z = orig_z - recon_z
-        
-        # 计算差异图的颜色范围
         max_diff = max(np.max(np.abs(diff_x)), np.max(np.abs(diff_y)), np.max(np.abs(diff_z)))
         diff_vmin, diff_vmax = -max_diff, max_diff
         
@@ -96,18 +88,15 @@ def save_comparison_images(original_images, reconstructed_images, save_path, pre
         axes[0, 5].set_xlabel('Width')
         axes[0, 5].set_ylabel('Height')
         
-        # 计算重建误差指标
         mse_x = np.mean((orig_x - recon_x) ** 2)
         mse_y = np.mean((orig_y - recon_y) ** 2)
         mse_z = np.mean((orig_z - recon_z) ** 2)
         total_mse = np.mean((original_images[i] - reconstructed_images[i]) ** 2)
         
-        # 在第二行右侧添加文本信息
         axes[1, 3].axis('off')
         axes[1, 4].axis('off')
         axes[1, 5].axis('off')
         
-        # 合并右侧三个子图显示误差信息
         info_text = f"""Reconstruction Metrics:
         
 Total MSE: {total_mse:.6f}
@@ -125,14 +114,12 @@ Data Ranges:
         fig.text(0.72, 0.25, info_text, fontsize=11, verticalalignment='center', 
                 bbox=dict(boxstyle="round,pad=0.5", facecolor="lightgray", alpha=0.8))
         
-        # 添加颜色条
         plt.colorbar(im_orig_z, ax=axes[0, 2], fraction=0.046, pad=0.04)
         plt.colorbar(im_recon_z, ax=axes[1, 2], fraction=0.046, pad=0.04)
         plt.colorbar(im_diff_z, ax=axes[0, 5], fraction=0.046, pad=0.04)
         
         plt.tight_layout()
         
-        # 保存图像
         save_file = os.path.join(save_path, f"{prefix}_{i}.png")
         plt.savefig(save_file, dpi=200, bbox_inches='tight')
         plt.close()
