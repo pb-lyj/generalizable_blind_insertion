@@ -1,0 +1,36 @@
+name: tactile_peg_in_hole
+
+# 动作维度: 3 (末端执行器的 x, y, z 位置)
+action_dim: 3
+
+# Shape meta定义观测和动作的形状
+# 触觉数据作为独立的观测键，类似图像数据集的处理方式
+shape_meta: &shape_meta
+  obs:
+    forces_l:
+      shape: [3, 20, 20]  # 左手触觉力阵列 (C, H, W)
+      type: tactile
+    forces_r:
+      shape: [3, 20, 20]  # 右手触觉力阵列 (C, H, W)
+      type: tactile
+  action:
+    shape: [3]
+
+# 触觉数据训练不需要真实的 env_runner（仅用于离线训练）
+# 使用 DummyImageRunner 满足 workspace 的类型检查
+env_runner:
+  _target_: diffusion_policy.env_runner.dummy_image_runner.DummyImageRunner
+
+dataset:
+  _target_: diffusion_policy.dataset.tactile_dataset.TactileArrayDataset
+  zarr_path: data/tactile_data.zarr
+  horizon: ${horizon}
+  pad_before: ${eval:'${n_obs_steps}-1'}
+  pad_after: ${eval:'${n_action_steps}-1'}
+  forces_l_key: forces_l
+  forces_r_key: forces_r
+  action_key: action
+  n_obs_steps: ${n_obs_steps}
+  seed: 42
+  val_ratio: 0.1
+  max_train_episodes: null

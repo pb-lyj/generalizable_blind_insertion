@@ -1,0 +1,8 @@
+{
+    "exclude": [
+        "data/**",
+        "data_local/**",
+        "outputs/**"
+    ],
+    "typeCheckingMode": "off"
+}
